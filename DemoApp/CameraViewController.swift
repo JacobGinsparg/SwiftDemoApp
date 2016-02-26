@@ -74,11 +74,10 @@ class CameraViewController: UIViewController {
     
     func startCameraSession() {
         configureDevice()
-        var err : NSError? = nil
-        captureSession.addInput(AVCaptureDeviceInput(device: captureDevice, error: &err))
-        
-        if err != nil {
-            println("error: \(err?.localizedDescription)")
+        do {
+            try self.captureSession.addInput(AVCaptureDeviceInput(device: self.captureDevice))
+        } catch let err as NSError {
+            print("error: \(err.localizedDescription)")
         }
         
         let previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
@@ -88,35 +87,38 @@ class CameraViewController: UIViewController {
     }
     
     func configureDevice() {
-        if let device = captureDevice {
-            device.lockForConfiguration(nil)
-            device.focusMode = .Locked
-            device.unlockForConfiguration()
-        }
+        do {
+            if let device = captureDevice {
+                try device.lockForConfiguration()
+                device.focusMode = .Locked
+                device.unlockForConfiguration()
+            }
+        } catch { }
     }
     
     func focusTo(value : Float) {
-        if let device = captureDevice {
-            if(device.lockForConfiguration(nil)) {
+        do {
+            if let device = captureDevice {
+                try device.lockForConfiguration()
                 device.setFocusModeLockedWithLensPosition(value, completionHandler: { (time) -> Void in
                     //
                 })
                 device.unlockForConfiguration()
             }
-        }
+        } catch { }
     }
 
     // MARK: Controller overrides
     
-    override func touchesBegan(touches: Set<NSObject>, withEvent event: UIEvent) {
-        var anyTouch = touches.first as! UITouch
-        var touchPercent = anyTouch.locationInView(self.view).x / screenWidth
+    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        let anyTouch = touches.first!
+        let touchPercent = anyTouch.locationInView(self.view).x / screenWidth
         focusTo(Float(touchPercent))
     }
     
-    override func touchesMoved(touches: Set<NSObject>, withEvent event: UIEvent) {
-        var anyTouch = touches.first as! UITouch
-        var touchPercent = anyTouch.locationInView(self.view).x / screenWidth
+    override func touchesMoved(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        let anyTouch = touches.first!
+        let touchPercent = anyTouch.locationInView(self.view).x / screenWidth
         focusTo(Float(touchPercent))
     }
     
@@ -141,7 +143,7 @@ class CameraViewController: UIViewController {
     
     func couponAnimation(sender: UIButton!) {
         // Remove all subviews
-        self.view.subviews.map({ ($0 as! UIView).subviews.map({ $0.removeFromSuperview() }) })
+        let _ = self.view.subviews.map({ ($0).subviews.map({ $0.removeFromSuperview() }) })
         
         // This stops the camera
         if (captureDevice != nil) {
@@ -150,7 +152,7 @@ class CameraViewController: UIViewController {
         
         
         // Configure animation
-        let animationImages = NSMutableArray()
+        var animationImages = [UIImage]()
         let numberOfImages = animatingSnap ? 311 : 117
         for counter in 0...numberOfImages {
             let snapImageName : String
@@ -160,7 +162,7 @@ class CameraViewController: UIViewController {
                 snapImageName = String(format: "cp_detect_1c_00%03d.png", counter)
             }
             let snapImage = UIImage(named: snapImageName)
-            animationImages.addObject(snapImage!)
+            animationImages.append(snapImage!)
         }
         let animationDuration = animatingSnap ? 15 : 4
         let nav = self.revealViewController().frontViewController as! NavigationViewController
@@ -175,14 +177,14 @@ class CameraViewController: UIViewController {
         
         // Start animation
         self.view.addSubview(animator)
-        animator.addSubview(UIImageView(image: UIImage.animatedImageWithImages(animationImages as [AnyObject], duration: NSTimeInterval(animationDuration))))
+        animator.addSubview(UIImageView(image: UIImage.animatedImageWithImages(animationImages, duration: NSTimeInterval(animationDuration))))
 		NSTimer.scheduledTimerWithTimeInterval(NSTimeInterval(animationDuration), target: self, selector: "doneAnimating:", userInfo: nil, repeats: false)
     }
     
     func doneAnimating(sender: AnyObject!) {
         if (viewPresent) {
             // Remove animation
-            self.view.subviews.map({ ($0 as! UIView).subviews.map({ $0.removeFromSuperview() }) })
+            let _ = self.view.subviews.map({ ($0).subviews.map({ $0.removeFromSuperview() }) })
             
             // Keep last image
             let nav = self.revealViewController().frontViewController as! NavigationViewController

@@ -90,7 +90,7 @@ class FeaturedCouponsViewController: MenuViewController, UITableViewDelegate, UI
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath) as! UITableViewCell
+        let cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath)
         var normalImage : String
         var selectedImage : String
         if (indexPath.section == 0 && indexPath.row == 0) {

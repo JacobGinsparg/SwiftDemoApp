@@ -35,7 +35,7 @@ class MenuController: UITableViewController {
     }
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        var cell = UITableViewCell()
+        let cell = UITableViewCell()
         if (indexPath.row == 0) {
         	cell.textLabel!.text = "Home"
             cell.textLabel!.textColor = UIColor(red: 108/255, green: 170/255, blue: 207/255, alpha: 1)
